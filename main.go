@@ -3,11 +3,9 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/smtp"
 	"os"
 	"strconv"
 	"strings"
@@ -16,14 +14,14 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// SITEURL is the website with the watches that I want
-const SITEURL = "https://www.armogan.com/us/all-watches-straps/watches/spirit-of-st-louis"
+// armoganURL is the website with the watches that I want
+const armoganURL = "https://www.armogan.com/us/all-watches-straps/watches/spirit-of-st-louis"
 
-// CURRENTPRICE is the price I don't want to pay
-const CURRENTPRICE = 225
+// currentPrice is the price I don't want to pay
+const currentPrice = 225
 
-// AT_ENDPOINT is the AfricasTalking Endpoint
-const AT_ENDPOINT = "https://api.africastalking.com/version1/messaging"
+// africasTalkingEndpoint is the AfricasTalking Endpoint
+const africasTalkingEndpoint = "https://api.africastalking.com/version1/messaging"
 
 // ArmoganWatch contains the watch data I need to fetch from the site
 type ArmoganWatch struct {
@@ -31,46 +29,9 @@ type ArmoganWatch struct {
 	price          float64
 }
 
-// checkPrice will return True if the price has changed from CURRENTPRICE
+// checkPrice will return True if the price has changed from currentPrice
 func (k ArmoganWatch) checkPrice() bool {
-	return k.price < CURRENTPRICE
-}
-
-// smtpServer data to smtp server
-type smtpServer struct {
-	host string
-	port string
-}
-
-// Address URI to smtp server
-func (s *smtpServer) Address() string {
-	return s.host + ":" + s.port
-}
-
-// email will email me the watches whose prices have changed
-func email(a []ArmoganWatch) error {
-	if len(a) > 0 {
-		from := os.Getenv("EMAIL_ADDRESS")
-		password := os.Getenv("EMAIL_PASSWORD")
-		to := []string{from}
-		// smtp server configuration.
-		smtpServer := smtpServer{host: "smtp.gmail.com", port: "587"}
-		// Message.
-		mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-		subject := "Subject: Test email from Go!\n"
-		message := []byte(subject + mime + "<html><body><h1>Hello World!</h1></body></html>")
-		// Authentication.
-		auth := smtp.PlainAuth("", from, password, smtpServer.host)
-		// Sending email.
-		err := smtp.SendMail(smtpServer.Address(), auth, from, to, message)
-		if err != nil {
-			fmt.Println(err)
-			return nil
-		}
-		fmt.Println("Email Sent!")
-
-	}
-	return nil
+	return k.price < currentPrice
 }
 
 // sms will send me an SMS
@@ -90,7 +51,7 @@ func sms(watches []ArmoganWatch) error {
 		return err
 	}
 
-	request, err := http.NewRequest("POST", AT_ENDPOINT, bytes.NewBuffer(requestBody))
+	request, err := http.NewRequest("POST", africasTalkingEndpoint, bytes.NewBuffer(requestBody))
 	if err != nil {
 		return nil
 	}
@@ -118,8 +79,8 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
-	// Get the SITEURL HTML
-	resp, err := http.Get(SITEURL)
+	// Get the armoganURL HTML
+	resp, err := http.Get(armoganURL)
 	if err != nil {
 		log.Fatal(err)
 	}

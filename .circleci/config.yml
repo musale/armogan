@@ -42,9 +42,9 @@ workflows:
               branches:
                 only:
                   - master
-        jobs:
-          - pricing:
-              filters:
-                branches:
-                  only:
-                    - master
+      jobs:
+        - pricing:
+            filters:
+              branches:
+                only:
+                  - master

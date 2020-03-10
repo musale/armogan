@@ -24,20 +24,21 @@ commands:
             go run main.go
 
 jobs:
-    pricing:
-        <<:*defaults
-        steps:
-            - install
-            - run: go run main.go
+  pricing:
+    <<: *defaults
+    steps:
+      - install
+      - run: go run main.go
+
 poll:
   triggers:
     - schedule:
-        # Every 3 hour
-        cron: "0 * * * *"
-        filters:
-          branches:
-            only:
-              - master
+      # Every 3 hour
+      cron: "0 * * * *"
+      filters:
+        branches:
+        only:
+          - master
   jobs:
     - pricing:
         filters:

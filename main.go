@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/joho/godotenv"
 )
 
 // armoganURL is the website with the watches that I want
@@ -75,10 +74,10 @@ func sms(watches []ArmoganWatch) error {
 	return nil
 }
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Println(err)
-	}
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	log.Println(err)
+	// }
 	// Get the armoganURL HTML
 	resp, err := http.Get(armoganURL)
 	if err != nil {

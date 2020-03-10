@@ -1,0 +1,40 @@
+version: 2.1
+
+defaults: &defaults
+  working_directory: ~/repo
+  docker:
+    - image: circleci/golang:1.13
+
+commands:
+  install:
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - dependancy-cache-{{checksum "go.sum"}}
+            - dependancy-cache-
+      - run: go mod
+      - save_cache:
+          key: dependancy-cache-{{checksum "go.sum"}}
+          paths:
+            -
+      - run:
+          name: Check prices
+          command: |
+            go run main.go
+
+jobs:
+    pricing:
+        <<:*defaults
+        steps:
+            - install
+            - run: go run main.go
+poll:
+  triggers:
+    - schedule:
+        # Every 3 hour
+        cron: "0 * * * *"
+        filters:
+          branches:
+            only:
+              - master

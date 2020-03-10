@@ -1,7 +1,7 @@
 version: 2.1
 
 defaults: &defaults
-  working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+  working_directory: /go/src/github.com/{{CIRCLE_PROJECT_USERNAME}}/{{CIRCLE_PROJECT_REPONAME}}
   docker:
     - image: circleci/golang:1.13
 
@@ -9,7 +9,14 @@ commands:
   install:
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - go-mod-v1-{{ checksum "go.sum" }}
       - run: go get -v -t -d ./...
+      - save_cache:
+          key: go-mod-v1-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
   check_price:
     steps:
       - checkout

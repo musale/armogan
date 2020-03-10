@@ -110,6 +110,7 @@ func main() {
 			changedPrices = append(changedPrices, a)
 		}
 	}
-
-	sms(changedPrices)
+	if len(changedPrices) > 0 {
+		sms(changedPrices)
+	}
 }

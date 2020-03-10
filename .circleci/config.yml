@@ -33,18 +33,18 @@ workflows:
               only:
                 - master
 
-    poll:
-      triggers:
-        - schedule:
-        # Every 3 hour
-            cron: "0 * * * *"
-            filters:
-              branches:
-                only:
-                  - master
-      jobs:
-        - pricing:
-            filters:
-              branches:
-                only:
-                  - master
+  poll:
+    triggers:
+      - schedule:
+          # Every 3 hour
+          cron: "0 * * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - pricing:
+          filters:
+            branches:
+              only:
+                - master

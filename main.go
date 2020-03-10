@@ -1,14 +1,15 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/joho/godotenv"
@@ -29,8 +30,8 @@ type ArmoganWatch struct {
 	price          float64
 }
 
-// checkPrice will return True if the price has changed from currentPrice
-func (k ArmoganWatch) checkPrice() bool {
+// changedPrice will return True if the price has changed from currentPrice
+func (k ArmoganWatch) changedPrice() bool {
 	return k.price < currentPrice
 }
 
@@ -39,39 +40,38 @@ func sms(watches []ArmoganWatch) error {
 	apiKey := os.Getenv("AT_API_KEY")
 	username := os.Getenv("AT_USERNAME")
 	to := os.Getenv("MY_PHONENUMBER")
-	message := "some text here"
+	message := ""
 
-	requestBody, err := json.Marshal(map[string]string{
-		"username": username,
-		"to":       to,
-		"message":  message,
-	})
-	log.Println((string(requestBody)))
+	for _, watch := range watches {
+		message += fmt.Sprintf("%s-($%.f)\n", watch.name, watch.price)
+	}
+
+	values := url.Values{}
+	values.Set("username", username)
+	values.Set("to", to)
+	values.Set("message", message)
+
+	reader := strings.NewReader(values.Encode())
+
+	req, err := http.NewRequest(http.MethodPost, africasTalkingEndpoint, reader)
 	if err != nil {
 		return err
 	}
 
-	request, err := http.NewRequest("POST", africasTalkingEndpoint, bytes.NewBuffer(requestBody))
-	if err != nil {
-		return nil
-	}
-	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	request.Header.Set("Accept", "application/json")
-	request.Header.Set("apiKey", apiKey)
+	req.Header.Set("apikey", apiKey)
+	req.Header.Set("Content-Length", strconv.Itoa(reader.Len()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Accept", "application/json")
 
-	client := http.Client{}
-	resp, err := client.Do(request)
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
 
-	if err != nil {
-		return nil
-	}
-
-	defer resp.Body.Close()
+	defer req.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
-	log.Println("RESPONSE", string(body))
+	log.Println(string(body))
 	return nil
 }
 func main() {
@@ -91,24 +91,26 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var armogans, changedPrice []ArmoganWatch
+	var armogans, changedPrices []ArmoganWatch
 	doc.Find(".product-item-info").Each(func(i int, s *goquery.Selection) {
 		// For each item found, get the band and title
 		photoURL, _ := s.Find("img.product-image-photo").Attr("src")
 		name := s.Find("a.product-item-link").Text()
-		price := s.Find("span.price").Text()
-		price = strings.Replace(price, "$", "", -1)
-		priceAmount, _ := strconv.ParseFloat(price, 64)
+		price := s.Find(".special-price").Text()
+		if price != "" {
+			name = strings.TrimSpace(name)
+			price = strings.TrimSpace(strings.Replace(price, "$", "", -1))
+			priceAmount, _ := strconv.ParseFloat(price, 64)
 
-		armogans = append(armogans, ArmoganWatch{name: name, photoURL: photoURL, price: priceAmount})
+			armogans = append(armogans, ArmoganWatch{name: name, photoURL: photoURL, price: priceAmount})
+		}
 	})
 
 	for _, a := range armogans {
-		if !a.checkPrice() {
-			changedPrice = append(changedPrice, a)
+		if a.changedPrice() {
+			changedPrices = append(changedPrices, a)
 		}
 	}
 
-	// email(changedPrice)
-	sms(changedPrice)
+	sms(changedPrices)
 }

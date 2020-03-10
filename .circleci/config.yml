@@ -1,7 +1,7 @@
 version: 2.1
 
 defaults: &defaults
-  working_directory: ~/repo
+  working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
   docker:
     - image: circleci/golang:1.13
 
@@ -13,11 +13,11 @@ commands:
           keys:
             - dependancy-cache-{{checksum "go.sum"}}
             - dependancy-cache-
-      - run: go mod
+      - run: go get -v -t -d ./...
       - save_cache:
           key: dependancy-cache-{{checksum "go.sum"}}
           paths:
-            -
+            - /go/src/
       - run:
           name: Check prices
           command: |

@@ -9,39 +9,42 @@ commands:
   install:
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - dependancy-cache-{{checksum "go.sum"}}
-            - dependancy-cache-
       - run: go get -v -t -d ./...
-      - save_cache:
-          key: dependancy-cache-{{checksum "go.sum"}}
-          paths:
-            - /go/src/
-      - run:
-          name: Check prices
-          command: |
-            go run main.go
+  check_price:
+    steps:
+      - checkout
+      - run: go run main.go
 
 jobs:
   pricing:
     <<: *defaults
     steps:
       - install
-      - run: go run main.go
+      - check_price
 
-poll:
-  triggers:
-    - schedule:
-      # Every 3 hour
-      cron: "0 * * * *"
-      filters:
-        branches:
-        only:
-          - master
-  jobs:
-    - pricing:
-        filters:
-          branches:
-            only:
-              - master
+workflows:
+  version: 2
+
+  test:
+    jobs:
+      - pricing:
+          filters:
+            branches:
+              only:
+                - master
+
+    poll:
+      triggers:
+        - schedule:
+        # Every 3 hour
+            cron: "0 * * * *"
+            filters:
+              branches:
+                only:
+                  - master
+        jobs:
+          - pricing:
+              filters:
+                branches:
+                  only:
+                    - master

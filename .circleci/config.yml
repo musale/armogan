@@ -34,8 +34,8 @@ workflows:
   poll:
     triggers:
       - schedule:
-          # Every 1 hour
-          cron: "0 * * * *"
+          # Every day at 12PM
+          cron: "0 12 * * *"
           filters:
             branches:
               only:

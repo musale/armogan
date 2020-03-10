@@ -79,6 +79,7 @@ func main() {
 	// 	log.Println(err)
 	// }
 	// Get the armoganURL HTML
+	log.Println("Getting the price changes on Armogan")
 	resp, err := http.Get(armoganURL)
 	if err != nil {
 		log.Fatal(err)
@@ -113,4 +114,5 @@ func main() {
 	if len(changedPrices) > 0 {
 		sms(changedPrices)
 	}
+	log.Println("Done getting the price changes on Armogan")
 }

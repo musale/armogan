@@ -18,7 +18,7 @@ import (
 const armoganURL = "https://www.armogan.com/us/all-watches-straps/watches/spirit-of-st-louis"
 
 // currentPrice is the price I don't want to pay
-const currentPrice = 159
+const currentPrice = 158
 
 // africasTalkingEndpoint is the AfricasTalking Endpoint
 const africasTalkingEndpoint = "https://api.africastalking.com/version1/messaging"

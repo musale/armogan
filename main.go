@@ -18,7 +18,7 @@ import (
 const armoganURL = "https://www.armogan.com/us/all-watches-straps/watches/spirit-of-st-louis"
 
 // currentPrice is the price I don't want to pay
-const currentPrice = 135
+const currentPrice = 133
 
 // africasTalkingEndpoint is the AfricasTalking Endpoint
 const africasTalkingEndpoint = "https://api.africastalking.com/version1/messaging"
@@ -42,7 +42,7 @@ func sms(watches []ArmoganWatch) error {
 	message := ""
 
 	for _, watch := range watches {
-		message += fmt.Sprintf("%s-($%.f)\n", watch.name, watch.price)
+		message += fmt.Sprintf("%s-($%.2f)\n", watch.name, watch.price)
 	}
 
 	values := url.Values{}
